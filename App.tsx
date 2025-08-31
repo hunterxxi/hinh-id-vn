@@ -16,9 +16,9 @@ import InfoModal from './components/InfoModal';
 import Footer from './components/Footer';
 
 // !!! QUAN TRỌNG: URL NÀY SẼ ĐƯỢC CẬP NHẬT SAU KHI DEPLOY WORKER
-const CLOUD_WORKER_URL = "URL_CUA_WORKER_SE_DAT_O_DAY";
+const CLOUD_WORKER_URL = "https://my-gemini-worker.phanmanhkhang89.workers.dev";
 // !!! QUAN TRỌNG: DÁN GOOGLE CLIENT ID BẠN ĐÃ LẤY Ở PHẦN 3 VÀO ĐÂY
-const GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com";
+const GOOGLE_CLIENT_ID = "378337637003-15iq90i9fm7tblo6rvjuqagiu66u0ua9.apps.googleusercontent.com";
 
 // (Toàn bộ phần code hằng số COUNTRIES, COUNTRY_CODES, BACKGROUND_COLORS, OUTFITS, countryPhotoSpecs... giữ nguyên như file gốc của bạn)
 // --- BẠN HÃY SAO CHÉP TOÀN BỘ PHẦN ĐÓ TỪ FILE GỐC VÀ DÁN VÀO ĐÂY ---
@@ -555,51 +555,7 @@ function App() {
         }
     };
 
-    const handleGenerateClick = async () => {
-        if (!croppedImage) return;
-
-        setAppState('generating');
-        setError(null);
-        setGeneratedImage(null);
-
-        try {
-            const finalBackgroundColor = backgroundColor === 'custom' 
-                ? customBackgroundColor 
-                : t(`bgColor_${backgroundColor}`);
-            
-            const resultUrl = await generateIdPhoto(
-                croppedImage,
-                country,
-                finalBackgroundColor,
-                OUTFITS[outfit],
-                currentSpec?.requirements,
-                customOutfitImage
-            );
-
-            const [aspectW, aspectH] = generatedPhotoAspectRatio.split(' / ').map(Number);
-            const targetLongestSide = 1600;
-            let targetWidth, targetHeight;
-
-            if (aspectW >= aspectH) {
-                targetWidth = targetLongestSide;
-                targetHeight = Math.round((targetLongestSide / aspectW) * aspectH);
-            } else {
-                targetHeight = targetLongestSide;
-                targetWidth = Math.round((targetLongestSide / aspectH) * aspectW);
-            }
-            const highResImageUrl = await resampleImageForPrinting(resultUrl, targetWidth, targetHeight);
-            
-            setGeneratedImage(highResImageUrl);
-            setAppState('done');
-            setSelectedLightboxImage(highResImageUrl);
-        } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
-            console.error("Failed to generate image:", err);
-            setError(errorMessage);
-            setAppState('editing');
-        }
-    };
-    
+        
     const handleCustomOutfitUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             try {
