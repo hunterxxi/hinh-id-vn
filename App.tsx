@@ -554,7 +554,6 @@ function App() {
             processFile(e.dataTransfer.files[0]);
         }
     };
-
         
     const handleCustomOutfitUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
