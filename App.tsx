@@ -1,7 +1,5 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
-*/
+// File: ai-id-photo-generator-application/App.tsx - PHIÊN BẢN HOÀN CHỈNH CUỐI CÙNG (Đã sửa lỗi thiếu đăng nhập)
+
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Lightbox from './components/Lightbox';
@@ -12,10 +10,9 @@ import PrintConfirmationModal from './components/PrintConfirmationModal';
 import InfoModal from './components/InfoModal';
 import Footer from './components/Footer';
 
-// !!! QUAN TRỌNG: DÁN URL WORKER CỦA BẠN VÀO ĐÂY
-const CLOUD_WORKER_URL = "https://my-gemini-worker.phanmanhkhang89.workers.dev"; 
-// !!! QUAN TRỌNG: DÁN GOOGLE CLIENT ID CỦA BẠN VÀO ĐÂY
-const GOOGLE_CLIENT_ID = "378337637003-15iq90i9fm7tblo6rvjuqagiu66u0ua9.apps.googleusercontent.com";
+// !!! QUAN TRỌNG: DÁN LẠI URL WORKER VÀ CLIENT ID CỦA BẠN VÀO ĐÂY
+const CLOUD_WORKER_URL = "Uhttps://my-gemini-worker.phanmanhkhang89.workers.devRL_CUA_WORKER_CUA_BAN";
+const GOOGLE_CLIENT_ID = "78337637003-15iq90i9fm7tblo6rvjuqagiu66u0ua9.apps.googleusercontent.com";
 
 
 const COUNTRIES = ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Argentina', 'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados', 'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan', 'Bolivia', 'Bosnia and Herzegovina', 'botswana', 'Brazil', 'Brunei', 'Bulgaria', 'Burkina Faso', 'Burundi', 'Cambodia', 'Cameroon', 'Canada', 'Cape Verde', 'Central African Republic', 'Chad', 'Chile', 'China', 'Colombia', 'Comoros', 'Congo', 'Costa Rica', 'Croatia', 'Cuba', 'Cyprus', 'Czech Republic', 'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic', 'Ecuador', 'Egypt', 'El Salvador', 'Equatorial Guinea', 'Eritrea', 'Estonia', 'Eswatini', 'Ethiopia', 'Fiji', 'Finland', 'France', 'Gabon', 'Gambia', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Grenada', 'Guatemala', 'Guinea', 'Guinea-Bissau', 'Guyana', 'Haiti', 'Honduras', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran', 'Iraq', 'Ireland', 'Israel', 'Italy', 'Ivory Coast', 'Jamaica', 'Japan', 'Jordan', 'Kazakhstan', 'Kenya', 'Kiribati', 'Kuwait', 'Kyrgyzstan', 'Laos', 'Latvia', 'Lebanon', 'Lesotho', 'Liberia', 'Libya', 'Liechtenstein', 'Lithuania', 'Luxembourg', 'Madagascar', 'Malawi', 'Malaysia', 'Maldives', 'Mali', 'Malta', 'Marshall Islands', 'Mauritania', 'Mauritius', 'Mexico', 'Micronesia', 'Moldova', 'Monaco', 'Mongolia', 'Montenegro', 'Morocco', 'Mozambique', 'Myanmar', 'Namibia', 'Nauru', 'Nepal', 'Netherlands', 'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 'North Korea', 'North Macedonia', 'Norway', 'Oman', 'Pakistan', 'Palau', 'Palestine', 'Panama', 'Papua new Guinea', 'Paraguay', 'Peru', 'Philippines', 'Poland', 'Portugal', 'Qatar', 'Romania', 'Russia', 'Rwanda', 'Saint Kitts and Nevis', 'Saint Lucia', 'Saint Vincent and the Grenadines', 'Samoa', 'San Marino', 'Sao Tome and Principe', 'Saudi Arabia', 'Schengen Area', 'Senegal', 'Serbia', 'Seychelles', 'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia', 'Solomon Islands', 'Somalia', 'South Africa', 'South Korea', 'South Sudan', 'Spain', 'Sri Lanka', 'Sudan', 'Suriname', 'Sweden', 'Switzerland', 'Syria', 'Taiwan', 'Tajikistan', 'Tanzania', 'Thailand', 'Timor-Leste', 'Togo', 'Tonga', 'Trinidad and Tobago', 'Tunisia', 'Turkey', 'Turkmenistan', 'Tuvalu', 'Uganda', 'Ukraine', 'United Arab Emirates', 'United Kingdom', 'USA', 'Uruguay', 'Uzbekistan', 'Vanuatu', 'Vatican City', 'Venezuela', 'Vietnam', 'Yemen', 'Zambia', 'Zimbabwe'].sort();
@@ -122,7 +119,7 @@ async function cropImageToPassportFrame(imageUrl: string, box: { x_min: number; 
 
             if (cropX < 0) cropX = 0;
             if (cropY < 0) cropY = 0;
-            if (cropX + cropWidth > w) cropX = w - cropWidth;
+            if (cropX + cropWidth > w) cropX = w - cropX;
             if (cropY + cropHeight > h) cropY = h - cropHeight;
             
             const canvas = document.createElement('canvas');
@@ -316,7 +313,6 @@ const PhotoQualityReport = ({ warnings, isAnalyzing, t }: { warnings: QualityWar
         </motion.div>
     );
 };
-
 function App() {
     const [sourceImage, setSourceImage] = React.useState<string | null>(null);
     const [displayImage, setDisplayImage] = React.useState<string | null>(null);
@@ -427,15 +423,13 @@ function App() {
         setUserApiKey(null);
         sessionStorage.removeItem('googleToken');
         sessionStorage.removeItem('geminiApiKey');
-        (window as any).google?.accounts.id.disableAutoSelect();
-        // Manually re-render the sign-in button after logout
         const signInDiv = document.getElementById('googleSignInButton');
         if (signInDiv) signInDiv.innerHTML = '';
-        setTimeout(() => {
-             if (googleToken === null) { // Check if still logged out
-                // Re-initialize logic here or in useEffect
-             }
-        }, 100);
+        (window as any).google?.accounts.id.prompt();
+        (window as any).google?.accounts.id.renderButton(
+            document.getElementById("googleSignInButton"),
+            { theme: "outline", size: "large", type: "standard" }
+        );
     };
 
     const handleApiKeySubmit = () => {
@@ -620,8 +614,8 @@ function App() {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
-
-const pickerContent = (
+    
+    const pickerContent = (
         <div className="flex items-center gap-4">
             <div className="relative w-16 h-16">
                 <input type="color" value={customBackgroundColor} onChange={(e) => setCustomBackgroundColor(e.target.value)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"/>
@@ -634,8 +628,9 @@ const pickerContent = (
         </div>
     );
 
-    const CountrySelector = ({ isMobile = false }) => (
-        <div className={isMobile ? 'text-center' : ''}>
+    const CountrySelector = ({ isMobile = false }) => {
+        return (
+            <div className={isMobile ? 'text-center' : ''}>
             <label className="block text-lg font-semibold text-gray-700 mb-2">{t('countryLabel')}</label>
             <div className="relative" ref={countrySelectRef}>
                 <button onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)} className="w-full p-3 text-left bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 flex justify-between items-center">
@@ -666,7 +661,8 @@ const pickerContent = (
                 </AnimatePresence>
             </div>
         </div>
-    );
+        );
+    };
     
     const BackgroundSelector = ({ isMobilePanel = false }) => {
         const presetColorOrder: PresetBackgroundColorKey[] = ['red', 'blue', 'lightGrey', 'white'];
@@ -706,8 +702,8 @@ const pickerContent = (
                     <div>
                         <h4 className="text-sm font-semibold text-gray-600 mb-2">{t('outfitCategory_general')}</h4>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                            <button onClick={() => {setOutfit('keep'); if(activeModal === 'outfit') setActiveModal(null); }} className={`p-3 border rounded-lg text-center transition ${outfit === 'keep' ? 'bg-blue-100 border-blue-500' : 'bg-white hover:bg-gray-50'}`}><span className="text-sm">{t('outfit_keep')}</span></button>
-                            <button onClick={() => customOutfitInputRef.current?.click()} className={`p-3 border rounded-lg text-center transition relative overflow-hidden flex flex-col justify-center items-center min-h-[4rem] ${outfit === 'custom' ? 'bg-blue-100 border-blue-500' : 'bg-white hover:bg-gray-50'}`}>
+                            <button onClick={() => {setOutfit('keep'); if(activeModal === 'outfit') setActiveModal(null); }} className={`p-3 border rounded-lg text-center transition ${outfit === 'keep' ? 'bg-blue-100 border-blue-500 font-semibold' : 'bg-white border-gray-300 hover:bg-gray-50'}`}><span className="text-sm">{t('outfit_keep')}</span></button>
+                            <button onClick={() => customOutfitInputRef.current?.click()} className={`p-3 border rounded-lg text-center transition relative overflow-hidden flex flex-col justify-center items-center min-h-[4rem] ${outfit === 'custom' ? 'bg-blue-100 border-blue-500 font-semibold' : 'bg-white border-gray-300 hover:bg-gray-50'}`}>
                                 {customOutfitImage ? (
                                     <><img src={customOutfitImage} className="w-full h-full object-cover absolute inset-0" alt={t('customOutfitAlt')} loading="lazy" decoding="async" /><div className="absolute inset-0 bg-black/40"></div><button onClick={(e) => { e.stopPropagation(); setCustomOutfitImage(null); if (outfit === 'custom') setOutfit('keep'); }} className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs" aria-label={t('removeCustomOutfit')}>&times;</button><span className="text-sm text-white relative z-10">{t('outfit_custom')}</span></>
                                 ) : ( <span className="text-sm">{t('outfit_custom')}</span> )}
@@ -719,7 +715,7 @@ const pickerContent = (
                             <h4 className="text-sm font-semibold text-gray-600 mb-2">{t(category.titleKey)}</h4>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                                 {category.outfits.map(outfitKey => (
-                                    <button key={outfitKey} onClick={() => {setOutfit(outfitKey); if(activeModal === 'outfit') setActiveModal(null); }} className={`p-3 border rounded-lg text-center transition ${outfit === outfitKey ? 'bg-blue-100 border-blue-500' : 'bg-white hover:bg-gray-50'}`}><span className="text-sm">{t(`outfit_${outfitKey}`)}</span></button>
+                                    <button key={outfitKey} onClick={() => {setOutfit(outfitKey); if(activeModal === 'outfit') setActiveModal(null); }} className={`p-3 border rounded-lg text-center transition ${outfit === outfitKey ? 'bg-blue-100 border-blue-500 font-semibold' : 'bg-white border-gray-300 hover:bg-gray-50'}`}><span className="text-sm">{t(`outfit_${outfitKey}`)}</span></button>
                                 ))}
                             </div>
                         </div>
@@ -728,8 +724,8 @@ const pickerContent = (
             </div>
         );
     };
-
-return (
+    
+    return (
         <main className="bg-gray-100 text-gray-800 min-h-screen w-full flex flex-col items-center p-4 selection:bg-blue-200">
             <div className="w-full max-w-6xl mx-auto flex flex-col items-center flex-grow">
                  <header className="w-full flex justify-between items-center mb-4 md:mb-8">
@@ -751,15 +747,19 @@ return (
                 {isApiKeyModalOpen && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
                         <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
-                            <h3 className="text-xl font-bold mb-2">Nhập Gemini API Key của bạn</h3>
+                            <h3 className="text-xl font-bold mb-2">{t('apiKeyModal.title')}</h3>
                             <p className="text-sm text-gray-600 mb-4">
-                                Key của bạn chỉ được lưu tạm thời trên trình duyệt. <br/>
-                                <strong>Lấy API key nhanh tại: <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline ml-1">Google AI Studio</a></strong>
+                                {t('apiKeyModal.description')} <br/>
+                                <strong>
+                                    <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline ml-1">
+                                        {t('apiKeyModal.linkText')}
+                                    </a>
+                                </strong>
                             </p>
-                            <input id="api-key-input" type="password" className="w-full p-2 border border-gray-300 rounded-md mb-4" placeholder="Dán API key vào đây" />
+                            <input id="api-key-input" type="password" className="w-full p-2 border border-gray-300 rounded-md mb-4" placeholder={t('apiKeyModal.placeholder')} />
                             <div className="flex gap-3">
-                                <button onClick={() => setApiKeyModalOpen(false)} className={secondaryButtonClasses}>Hủy</button>
-                                <button onClick={handleApiKeySubmit} className={primaryButtonClasses}>Lưu Key</button>
+                                <button onClick={() => setApiKeyModalOpen(false)} className={secondaryButtonClasses}>{t('apiKeyModal.cancel')}</button>
+                                <button onClick={handleApiKeySubmit} className={primaryButtonClasses}>{t('apiKeyModal.save')}</button>
                             </div>
                         </motion.div>
                     </motion.div>
@@ -859,7 +859,7 @@ return (
             
             <AnimatePresence>
                 {activeModal && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setActiveModal(null)} className="fixed inset-0 bg-black/50 z-20 md:hidden">
+                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setActiveModal(null)} className="fixed inset-0 bg-black/50 z-20 md:hidden">
                         <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={{ type: "tween", ease: "circOut", duration: 0.3 }} onClick={(e) => e.stopPropagation()} className={`absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-lg ${activeModal === 'outfit' ? 'h-3/4' : ''}`}>
                            <div className={`p-4 ${activeModal === 'outfit' ? 'overflow-y-auto h-full' : ''}`}>
                                 {activeModal === 'country' && <CountrySelector isMobile />}
