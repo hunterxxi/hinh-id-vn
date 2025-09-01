@@ -36,6 +36,17 @@ const enTranslations = {
     appInfoButton: "App Info",
     appInfoTitle: "App Information",
 
+     // GG Login
+    signOut: "Sign Out",
+    apiKeyModal: {
+        title: "Enter Your Gemini API Key",
+        description: "Your key is stored only in your browser for this session and is not saved on our servers.",
+        linkText: "Get your API key quickly from Google AI Studio",
+        placeholder: "Paste your API key here",
+        cancel: "Cancel",
+        save: "Save Key"
+    }
+
     // Idle/Upload State
     uploadTitle: "Upload Your Photo",
     uploadSubtitle: "Drag & drop an image or click to select a file.",
@@ -198,6 +209,16 @@ export const translations: Record<string, Record<string, any>> = {
             feedback_none: "Căn chỉnh mặt và vai của bạn vào trong khung",
             button: "Chụp ảnh",
         },
+        // GG Login
+        signOut: "Đăng xuất",
+        apiKeyModal: {
+            title: "Nhập Gemini API Key của bạn",
+            description: "Key của bạn chỉ được lưu tạm thời trên trình duyệt và không được lưu trên máy chủ của chúng tôi.",
+            linkText: "Lấy API key nhanh tại Google AI Studio",
+            placeholder: "Dán API key của bạn vào đây",
+            cancel: "Hủy",
+            save: "Lưu Key"
+        }
         originalPhotoTitle: "Ảnh của bạn",
         originalPhotoAlt: "Ảnh bạn đã tải lên",
         generatedPhotoTitle: "Ảnh do AI tạo",
