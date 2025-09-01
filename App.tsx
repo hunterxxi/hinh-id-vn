@@ -381,7 +381,7 @@ function App() {
                 });
                 (window as any).google.accounts.id.renderButton(
                     document.getElementById("googleSignInButton"),
-                    { theme: "outline", size: "large", type: "standard" }
+                    { theme: "outline", size: "large", type: "standard", ux_mode: "redirect" } // Thêm ux_mode: "redirect"
                 );
             }
         };
