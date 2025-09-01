@@ -1,5 +1,7 @@
 {
-  "name": "AI ID Photo Generator Application",
-  "description": "Easily create official ID, passport, and visa photos for any country. Choose your background, outfit, and let AI handle the rest.",
-  "requestFramePermissions": []
+  "name": "ID Photo Generator Application",
+  "description": "Easily create official ID, passport, and visa photos for any country. Choose your background, outfit, and let AI handle the rest. ",
+  "requestFramePermissions": [
+    "camera"
+  ]
 }
