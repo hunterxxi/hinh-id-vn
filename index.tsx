@@ -1,4 +1,4 @@
-// File: my-gemini-worker/src/index.ts - PHIÊN BẢN HOÀN CHỈNH
+// File: my-gemini-worker/src/index.ts - PHIÊN BẢN HOÀN CHỈNH CUỐI CÙNG
 
 import { GoogleGenAI, Modality } from "@google/genai";
 import type { GenerateContentResponse, Part } from "@google/genai";
@@ -80,7 +80,8 @@ export default {
 
         } catch (error: any) {
             console.error("Error processing request:", error);
-            return new Response(`Failed to process request: ${error.message}`, { status: 500, headers: corsHeaders(origin) });
+            const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+            return new Response(`Failed to process request: ${errorMessage}`, { status: 500, headers: corsHeaders(origin) });
         }
     },
 };
@@ -160,11 +161,14 @@ async function handleFacebox(ai: GoogleGenAI, payload: any) {
         model: 'gemini-2.5-flash',
         contents: { parts: [imagePart, { text: prompt }] },
     });
-
     const rawText = response.text.trim();
     const jsonString = rawText.replace(/^```json\s*/, '').replace(/\s*```$/, '');
     if (!jsonString) throw new Error("AI failed to detect a face.");
-    return JSON.parse(jsonString);
+    try {
+        return JSON.parse(jsonString);
+    } catch (e) {
+        throw new Error(`AI returned invalid face data: ${jsonString}`);
+    }
 }
 
 // CÁC HÀM HỖ TRỢ
@@ -201,17 +205,5 @@ function getOutfitInstruction(outfit: string, hasCustomOutfit?: boolean): string
 function getPromptForIdPhoto(country: string, backgroundColor: string, outfit: string, specs?: string, hasCustomOutfit?: boolean): string {
     const outfitInstruction = getOutfitInstruction(outfit, hasCustomOutfit);
     const dimensionInstruction = specs ? `Dimension & Cropping Requirements:\nThis is a strict requirement. The final image MUST adhere to these dimensions precisely.\n${specs}` : "Cropping: The final image must be clean, professional, and cropped appropriately for a passport-style photo.";
-    return `**Primary Objective:** Transform the provided image into a hyper-realistic, compliant passport or visa photograph for ${country}. The final output must look like a high-quality photograph taken in a professional studio, NOT a digital illustration or an airbrushed image.
-**Mandatory Directives for Subject's Appearance:**
-1.  **Likeness Preservation (Non-negotiable):** The subject's core facial structure, features (eyes, nose, mouth), and head shape must remain 100% identical to the source photo. Do not alter their fundamental identity.
-2.  **Photorealistic Skin Texture (Crucial):** Retain and enhance natural skin texture. This includes visible pores, fine lines, and subtle skin grain. Absolutely NO beautification, smoothing, or "airbrushing" effects. The final skin texture must not look waxy, plastic, or overly smooth.
-3.  **Expression:** The person's expression must be neutral: eyes open, looking directly at the camera, and mouth closed.
-4.  **Gaze Correction:** If the person's gaze is slightly off-center, subtly adjust it so they are looking directly forward into the camera.
-${dimensionInstruction}
-**Studio Environment Simulation:**
--   **Studio-Quality Lighting:** The lighting must be completely uniform and balanced. Eliminate all shadows on the face and background. Crucially, remove any harsh glare or hotspots on the skin.
--   **Background Integration:** The background must be a solid, perfectly uniform, plain ${backgroundColor}.
--   **Clothing Integration:** ${outfitInstruction} The new clothing must be rendered with photorealistic texture and must integrate seamlessly.
--   **Accessories:** Remove any non-religious headwear, headphones, or sunglasses. Ensure there is no glare on prescription lenses.
--   **No Text:** Do not generate any text, letters, or numbers in the image.`;
+    return `**Primary Objective:** Transform the provided image into a hyper-realistic, compliant passport or visa photograph for ${country}. The final output must look like a high-quality photograph taken in a professional studio, NOT a digital illustration or an airbrushed image.\n\n**Mandatory Directives for Subject's Appearance:**\n\n1.  **Likeness Preservation (Non-negotiable):** The subject's core facial structure, features (eyes, nose, mouth), and head shape must remain 100% identical to the source photo. Do not alter their fundamental identity.\n\n2.  **Photorealistic Skin Texture (Crucial):** Retain and enhance natural skin texture. This includes visible pores, fine lines, and subtle skin grain. Absolutely NO beautification, smoothing, or "airbrushing" effects. The final skin texture must not look waxy, plastic, or overly smooth.\n\n3.  **Expression:** The person's expression must be neutral: eyes open, looking directly at the camera, and mouth closed.\n\n4.  **Gaze Correction:** If the person's gaze is slightly off-center, subtly adjust it so they are looking directly forward into the camera.\n\n${dimensionInstruction}\n\n**Studio Environment Simulation:**\n-   **Studio-Quality Lighting:** The lighting must be completely uniform and balanced. Eliminate all shadows on the face and background. Crucially, remove any harsh glare or hotspots on the skin.\n-   **Background Integration:** The background must be a solid, perfectly uniform, plain ${backgroundColor}.\n-   **Clothing Integration:** ${outfitInstruction} The new clothing must be rendered with photorealistic texture and must integrate seamlessly.\n-   **Accessories:** Remove any non-religious headwear, headphones, or sunglasses. Ensure there is no glare on prescription lenses.\n-   **No Text:** Do not generate any text, letters, or numbers in the image.`;
 }
