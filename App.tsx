@@ -11,7 +11,7 @@ import InfoModal from './components/InfoModal';
 import Footer from './components/Footer';
 
 // !!! QUAN TRỌNG: DÁN LẠI URL WORKER VÀ CLIENT ID CỦA BẠN VÀO ĐÂY
-const CLOUD_WORKER_URL = "Uhttps://my-gemini-worker.phanmanhkhang89.workers.devRL_CUA_WORKER_CUA_BAN";
+const CLOUD_WORKER_URL = "https://my-gemini-worker.phanmanhkhang89.workers.dev";
 const GOOGLE_CLIENT_ID = "7378337637003-15iq90i9fm7tblo6rvjuqagiu66u0ua9.apps.googleusercontent.com";
 
 
