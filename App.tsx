@@ -1,5 +1,7 @@
-// File: ai-id-photo-generator-application/App.tsx - PHIÊN BẢN HOÀN CHỈNH CUỐI CÙNG
-
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+*/
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Lightbox from './components/Lightbox';
@@ -11,7 +13,7 @@ import InfoModal from './components/InfoModal';
 import Footer from './components/Footer';
 
 // !!! QUAN TRỌNG: DÁN URL WORKER CỦA BẠN VÀO ĐÂY
-const CLOUD_WORKER_URL = "https://my-gemini-worker.phanmanhkhang89.workers.dev";
+const CLOUD_WORKER_URL = "https://my-gemini-worker.phanmanhkhang89.workers.dev"; 
 // !!! QUAN TRỌNG: DÁN GOOGLE CLIENT ID CỦA BẠN VÀO ĐÂY
 const GOOGLE_CLIENT_ID = "378337637003-15iq90i9fm7tblo6rvjuqagiu66u0ua9.apps.googleusercontent.com";
 
@@ -120,21 +122,9 @@ async function cropImageToPassportFrame(imageUrl: string, box: { x_min: number; 
 
             if (cropX < 0) cropX = 0;
             if (cropY < 0) cropY = 0;
-            if (cropX + cropWidth > w) {
-                cropWidth = w - cropX;
-            }
-            if (cropY + cropHeight > h) {
-                cropHeight = h - cropY;
-            }
-            if (cropWidth > w) {
-                const newWidth = w;
-                cropHeight = newWidth / targetAspectRatio;
-                cropX = 0;
-                cropY = faceTop - (cropHeight - faceHeight) / 2;
-                if (cropY < 0) cropY = 0;
-                if (cropY + cropHeight > h) cropY = h - cropHeight;
-            }
-
+            if (cropX + cropWidth > w) cropX = w - cropWidth;
+            if (cropY + cropHeight > h) cropY = h - cropHeight;
+            
             const canvas = document.createElement('canvas');
             canvas.width = cropWidth;
             canvas.height = cropHeight;
@@ -425,8 +415,11 @@ function App() {
             }
         };
         const script = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
-        if (script) script.onload = initializeGoogleSignIn;
-        if ((window as any).google) initializeGoogleSignIn();
+        if (script) {
+            script.onload = initializeGoogleSignIn;
+        } else if ((window as any).google) {
+            initializeGoogleSignIn();
+        }
     }, [googleToken]);
 
     const handleLogout = () => {
@@ -435,6 +428,14 @@ function App() {
         sessionStorage.removeItem('googleToken');
         sessionStorage.removeItem('geminiApiKey');
         (window as any).google?.accounts.id.disableAutoSelect();
+        // Manually re-render the sign-in button after logout
+        const signInDiv = document.getElementById('googleSignInButton');
+        if (signInDiv) signInDiv.innerHTML = '';
+        setTimeout(() => {
+             if (googleToken === null) { // Check if still logged out
+                // Re-initialize logic here or in useEffect
+             }
+        }, 100);
     };
 
     const handleApiKeySubmit = () => {
@@ -619,8 +620,8 @@ function App() {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
-    
-    const pickerContent = (
+
+const pickerContent = (
         <div className="flex items-center gap-4">
             <div className="relative w-16 h-16">
                 <input type="color" value={customBackgroundColor} onChange={(e) => setCustomBackgroundColor(e.target.value)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"/>
@@ -633,22 +634,102 @@ function App() {
         </div>
     );
 
-    const CountrySelector = ({ isMobile = false }) => {
-        // ... (Component implementation)
-        return <div/>
-    };
+    const CountrySelector = ({ isMobile = false }) => (
+        <div className={isMobile ? 'text-center' : ''}>
+            <label className="block text-lg font-semibold text-gray-700 mb-2">{t('countryLabel')}</label>
+            <div className="relative" ref={countrySelectRef}>
+                <button onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)} className="w-full p-3 text-left bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 flex justify-between items-center">
+                   <span className="flex items-center gap-3">
+                       {COUNTRY_CODES[country] ? <span className={`fi fi-${COUNTRY_CODES[country]} text-2xl rounded-sm`}></span> : <span className="text-2xl">🌐</span>}
+                       <span className="truncate">{country}</span>
+                   </span>
+                   <svg className={`w-5 h-5 text-gray-400 transition-transform ${isCountryDropdownOpen ? 'transform rotate-180' : ''}`} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
+                </button>
+                <AnimatePresence>
+                {isCountryDropdownOpen && (
+                    <motion.div initial={{ opacity: 0, y: isMobile ? 10 : -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: isMobile ? 10 : -10 }} className={`absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg ${isMobile ? 'bottom-full mb-2' : ''}`}>
+                        <div className="p-2">
+                            <input type="text" placeholder={t('searchPlaceholder')} className="w-full p-2 border border-gray-200 rounded-md" value={countrySearchQuery} onChange={(e) => setCountrySearchQuery(e.target.value)} autoFocus />
+                        </div>
+                        <ul className="max-h-60 overflow-y-auto">
+                            {filteredCountries.length > 0 ? (
+                                filteredCountries.map(c => (
+                                    <li key={c} className="px-4 py-2 hover:bg-blue-50 cursor-pointer flex items-center gap-3" onClick={() => { setCountry(c); setIsCountryDropdownOpen(false); setCountrySearchQuery(''); if(activeModal) setActiveModal(null); }}>
+                                        {COUNTRY_CODES[c] && <span className={`fi fi-${COUNTRY_CODES[c]} text-xl rounded-sm`}></span>}
+                                        <span>{c}</span>
+                                    </li>
+                                ))
+                            ) : ( <li className="px-4 py-3 text-gray-500 text-center">{t('noResultsFound')}</li> )}
+                        </ul>
+                    </motion.div>
+                )}
+                </AnimatePresence>
+            </div>
+        </div>
+    );
     
     const BackgroundSelector = ({ isMobilePanel = false }) => {
-        // ... (Component implementation)
-        return <div/>
+        const presetColorOrder: PresetBackgroundColorKey[] = ['red', 'blue', 'lightGrey', 'white'];
+        return (
+            <div className={isMobilePanel ? 'text-center' : ''}>
+                <h3 className="text-lg font-semibold text-gray-700 mb-3">{t('backgroundLabel')}</h3>
+                <div className="flex gap-3 items-center justify-center">
+                    <div className="relative">
+                        <button onClick={() => { setBackgroundColor('custom'); setIsColorPickerOpen(!isColorPickerOpen); }} className={`w-12 h-12 rounded-full border-2 transition-transform hover:scale-110 flex items-center justify-center ${backgroundColor === 'custom' ? 'border-blue-600 ring-2 ring-blue-600 ring-offset-2' : 'border-gray-200'}`} style={{ backgroundColor: customBackgroundColor }} aria-label={t('bgColor_custom')}>
+                            <svg className="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.998 15.998 0 011.622-3.385m5.043.025a15.998 15.998 0 001.622-3.385m3.388 1.62a15.998 15.998 0 00-1.622 3.385m-5.043-.025a15.998 15.998 0 01-3.388 1.622m3.388-1.622a15.998 15.998 0 013.388 1.622m-5.043-.025a15.998 15.998 0 00-3.388-1.622m-1.622 3.385a15.998 15.998 0 01-1.622-3.385" /></svg>
+                        </button>
+                        <AnimatePresence>
+                        {!isMobilePanel && isColorPickerOpen && ( <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute z-10 top-full mt-2 left-1/2 -translate-x-1/2 bg-white p-4 rounded-lg shadow-lg border">{pickerContent}</motion.div> )}
+                        </AnimatePresence>
+                    </div>
+                    {presetColorOrder.map(colorKey => (
+                        <button key={colorKey} onClick={() => { setBackgroundColor(colorKey); setIsColorPickerOpen(false); if(activeModal === 'background') setActiveModal(null); }} className={`w-12 h-12 rounded-full border-2 transition-transform hover:scale-110 ${backgroundColor === colorKey ? 'border-blue-600 ring-2 ring-blue-600 ring-offset-2' : 'border-gray-200'}`} style={{ backgroundColor: BACKGROUND_COLORS[colorKey] }} aria-label={t(`bgColor_${colorKey}`)}></button>
+                    ))}
+                </div>
+                 <AnimatePresence>
+                    {isMobilePanel && isColorPickerOpen && (
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsColorPickerOpen(false)} className="fixed inset-0 bg-black/50 z-30 flex items-center justify-center p-4">
+                            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} onClick={(e) => e.stopPropagation()} className="bg-white p-6 rounded-lg shadow-lg border">{pickerContent}</motion.div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </div>
+        )
     };
     
     const OutfitSelector = ({ isMobilePanel = false }) => {
-        // ... (Component implementation)
-        return <div/>
+        return (
+            <div className={isMobilePanel ? 'text-center' : ''}>
+                <h3 className="text-lg font-semibold text-gray-700 mb-3">{t('outfitLabel')}</h3>
+                <input type="file" ref={customOutfitInputRef} onChange={handleCustomOutfitUpload} className="hidden" accept="image/*" />
+                <div className="space-y-4">
+                    <div>
+                        <h4 className="text-sm font-semibold text-gray-600 mb-2">{t('outfitCategory_general')}</h4>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            <button onClick={() => {setOutfit('keep'); if(activeModal === 'outfit') setActiveModal(null); }} className={`p-3 border rounded-lg text-center transition ${outfit === 'keep' ? 'bg-blue-100 border-blue-500' : 'bg-white hover:bg-gray-50'}`}><span className="text-sm">{t('outfit_keep')}</span></button>
+                            <button onClick={() => customOutfitInputRef.current?.click()} className={`p-3 border rounded-lg text-center transition relative overflow-hidden flex flex-col justify-center items-center min-h-[4rem] ${outfit === 'custom' ? 'bg-blue-100 border-blue-500' : 'bg-white hover:bg-gray-50'}`}>
+                                {customOutfitImage ? (
+                                    <><img src={customOutfitImage} className="w-full h-full object-cover absolute inset-0" alt={t('customOutfitAlt')} loading="lazy" decoding="async" /><div className="absolute inset-0 bg-black/40"></div><button onClick={(e) => { e.stopPropagation(); setCustomOutfitImage(null); if (outfit === 'custom') setOutfit('keep'); }} className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs" aria-label={t('removeCustomOutfit')}>&times;</button><span className="text-sm text-white relative z-10">{t('outfit_custom')}</span></>
+                                ) : ( <span className="text-sm">{t('outfit_custom')}</span> )}
+                            </button>
+                        </div>
+                    </div>
+                    {OUTFIT_CATEGORIES.map(category => (
+                        <div key={category.titleKey}>
+                            <h4 className="text-sm font-semibold text-gray-600 mb-2">{t(category.titleKey)}</h4>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                {category.outfits.map(outfitKey => (
+                                    <button key={outfitKey} onClick={() => {setOutfit(outfitKey); if(activeModal === 'outfit') setActiveModal(null); }} className={`p-3 border rounded-lg text-center transition ${outfit === outfitKey ? 'bg-blue-100 border-blue-500' : 'bg-white hover:bg-gray-50'}`}><span className="text-sm">{t(`outfit_${outfitKey}`)}</span></button>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
     };
-    
-    return (
+
+return (
         <main className="bg-gray-100 text-gray-800 min-h-screen w-full flex flex-col items-center p-4 selection:bg-blue-200">
             <div className="w-full max-w-6xl mx-auto flex flex-col items-center flex-grow">
                  <header className="w-full flex justify-between items-center mb-4 md:mb-8">
@@ -752,16 +833,13 @@ function App() {
                                     <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-sm z-10 p-4 space-y-4 border-t border-gray-200">
                                          {appState === 'done' ? (
                                             <div className="space-y-3">
-                                                <div className="grid grid-cols-2 gap-3">
-                                                    <button onClick={handleGenerateClick} className={secondaryButtonClasses.replace('text-lg', 'text-base').replace('py-3', 'py-2')}>{t('regenerateButton')}</button>
-                                                    <button onClick={handleReset} className={secondaryButtonClasses.replace('text-lg', 'text-base').replace('py-3', 'py-2')}>{t('resetButton')}</button>
-                                                </div>
+                                                <div className="grid grid-cols-2 gap-3"><button onClick={handleGenerateClick} className={secondaryButtonClasses.replace('text-lg', 'text-base').replace('py-3', 'py-2')}>{t('regenerateButton')}</button><button onClick={handleReset} className={secondaryButtonClasses.replace('text-lg', 'text-base').replace('py-3', 'py-2')}>{t('resetButton')}</button></div>
                                                 <button onClick={handleDownload} className={`${primaryButtonClasses.replace('text-lg', 'text-base').replace('py-3', 'py-2')} text-center block w-full`}>{t('downloadButton')}</button>
                                                 <button onClick={() => setPrintModalOpen(true)} className={`${redButtonClasses.replace('text-lg', 'text-base').replace('py-3', 'py-2')} text-center block w-full`}>{t('printOnlineButton')}</button>
                                             </div>
                                          ) : (
                                             <div className="grid grid-cols-2 gap-3">
-                                                 <button onClick={handleReset} className={secondaryButtonClasses.replace('text-lg', 'text-base').replace('py-3', 'py-2')}>{t('resetButton')}</button>
+                                                <button onClick={handleReset} className={secondaryButtonClasses.replace('text-lg', 'text-base').replace('py-3', 'py-2')}>{t('resetButton')}</button>
                                                 <button onClick={handleGenerateClick} className={primaryButtonClasses.replace('text-lg', 'text-base').replace('py-3', 'py-2')} disabled={isAnalyzingQuality}>{t('generateButton')}</button>
                                             </div>
                                          )}
@@ -779,9 +857,9 @@ function App() {
                 </AnimatePresence>
             </div>
             
-             <AnimatePresence>
+            <AnimatePresence>
                 {activeModal && (
-                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setActiveModal(null)} className="fixed inset-0 bg-black/50 z-20 md:hidden">
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setActiveModal(null)} className="fixed inset-0 bg-black/50 z-20 md:hidden">
                         <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={{ type: "tween", ease: "circOut", duration: 0.3 }} onClick={(e) => e.stopPropagation()} className={`absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-lg ${activeModal === 'outfit' ? 'h-3/4' : ''}`}>
                            <div className={`p-4 ${activeModal === 'outfit' ? 'overflow-y-auto h-full' : ''}`}>
                                 {activeModal === 'country' && <CountrySelector isMobile />}
